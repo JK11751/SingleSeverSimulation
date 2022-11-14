@@ -5,13 +5,13 @@ import java.util.*;
 
 public class SingleServerSimulation {
     //Constants
-    final static int Q_LIMIT = 100; //limit on queue length
+    final static int Q_LIMIT = 1000; //limit on queue length
     final static int BUSY = 1; //mnemonic for server being busy
     final static int IDLE = 0; //idle
 
     //Status variables
-    public static int next_event_type, num_custs_delayed, num_delays_required, num_events, num_in_q, server_status;
-    public static double area_num_in_q, area_server_status, mean_interarrival, mean_service, time, time_last_event, total_of_delays;
+    public static int next_event_type, num_custs_delayed, num_of_customer, num_events, num_in_q, server_status;
+    public static double area_num_in_q, area_server_status, mean_interarrival, mean_service, sim_time, time_last_event, total_of_delays;
     public static double[] time_arrival = new double[Q_LIMIT+1];
     public static double[] time_next_event = new double[3];
 
@@ -28,14 +28,14 @@ public class SingleServerSimulation {
         //Initialize variables
         mean_interarrival = 0;
         mean_service = 0;
-        num_delays_required = 0;
+        num_of_customer = 0;
 
         //Reading values from the file
         try {
             inFile = new Scanner(new FileReader("./mm1.in"));
             mean_interarrival = inFile.nextDouble();
             mean_service = inFile.nextDouble();
-            num_delays_required = inFile.nextInt();
+            num_of_customer = inFile.nextInt();
         } catch (Exception e) {
             //TODO: handle exception
             System.out.println("File not found");
@@ -49,7 +49,7 @@ public class SingleServerSimulation {
             outFile.println("Single-server queueing system\n\n");
             outFile.format("Mean interarrival time %11.3f minutes\n\n", mean_interarrival);
             outFile.format("Mean service time %16.3f minutes\n\n", mean_service);
-            outFile.format("Number of customers %d\n\n", num_delays_required);
+            outFile.format("Number of customers %d\n\n", num_of_customer);
             
         } catch (Exception e) {
             //TODO: handle exception
@@ -63,7 +63,7 @@ public class SingleServerSimulation {
         
         //Run the simulation while more delays are still needed
         
-        while(num_custs_delayed < num_delays_required){
+        while(num_custs_delayed < num_of_customer){
             //determine next event
             timing();
 
@@ -99,7 +99,7 @@ public class SingleServerSimulation {
     public static void initialize() {
         //Initialize the simulation clock
 
-        time = 0;
+        sim_time = 0;
 
         //Initialize the status variables
         server_status = IDLE;
@@ -116,7 +116,7 @@ public class SingleServerSimulation {
         //Initialize the event list. Since no customers are present, the departure service
         //service completion event is eliminated from consideration
 
-        time_next_event[1] = time + expon(mean_interarrival);
+        time_next_event[1] = sim_time + expon(mean_interarrival);
         time_next_event[2] = 1.0e+30; //10 to power 30
     }
 
@@ -140,13 +140,13 @@ public class SingleServerSimulation {
 
         if (next_event_type == 0){
             //The event list is empty so stop the simulation
-            outFile.format("\nEvent list empty at time %f", time);
+            outFile.format("\nEvent list empty at time %f", sim_time);
             System.exit(0);
         }
 
         //Event list is not empty so advance the simulation clock
 
-        time = min_time_next_event;
+        sim_time = min_time_next_event;
     }
 
     //Arrival event function
@@ -156,7 +156,7 @@ public class SingleServerSimulation {
 
         //Schedule next arrival
 
-        time_next_event[1] = time + expon(mean_interarrival);
+        time_next_event[1] = sim_time + expon(mean_interarrival);
 
         //Check to see whether the server is busy
 
@@ -169,14 +169,14 @@ public class SingleServerSimulation {
             if (num_in_q > Q_LIMIT){
                 //The queue has overflowed, so stop the simulation
                 outFile.print("\nOverflow of the array at time_arrival at");
-                outFile.format(" time %f", time);
+                outFile.format(" time %f", sim_time);
                 System.exit(0);
             }
 
             //There is still room in the queue, so store the time of arrival of arriving customer at
             //the new end of time_arrival
 
-            time_arrival[num_in_q] = time;
+            time_arrival[num_in_q] = sim_time;
         }
         else
         {
@@ -195,7 +195,7 @@ public class SingleServerSimulation {
 
             //schedule departure (service completion)
 
-            time_next_event[2] = time + expon(mean_service);
+            time_next_event[2] = sim_time + expon(mean_service);
         }
     }
 
@@ -220,13 +220,13 @@ public class SingleServerSimulation {
 
             //Compute the delay of the customer who is beginning service and update the total delay accumulator
 
-            delay = time - time_arrival[1];
+            delay = sim_time - time_arrival[1];
             total_of_delays += delay;
 
             //Increment the number of customers delayed and schedule departure
 
             ++num_custs_delayed;
-            time_next_event[2] = time + expon(mean_service);
+            time_next_event[2] = sim_time + expon(mean_service);
 
             //move each customer in queue (if any) up one place
 
@@ -241,9 +241,9 @@ public class SingleServerSimulation {
 
         //compute and write estimates of desired measures of performance
         outFile.format("\n\nAverage delay in queue %11.3f minutes\n\n", total_of_delays / num_custs_delayed);
-        outFile.format("Average number in queue%10.3f\n\n", area_num_in_q / time);
-        outFile.format("Server utilization%15.3f\n\n", area_server_status / time);
-        outFile.format("Time simulation ended%12.3f", time);        
+        outFile.format("Average number in queue%10.3f\n\n", area_num_in_q / sim_time);
+        outFile.format("Server utilization%15.3f\n\n", area_server_status / sim_time);
+        outFile.format("Time simulation ended%12.3f", sim_time);        
     }
 
     public static void update_time_avg_stats() {
@@ -253,8 +253,8 @@ public class SingleServerSimulation {
 
         //compute the time since last event and update last-event-time marker
 
-        time_since_last_event = time - time_last_event;
-        time_last_event = time;
+        time_since_last_event = sim_time - time_last_event;
+        time_last_event = sim_time;
 
         //update area under number-in-queue function
 
