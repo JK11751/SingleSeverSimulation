@@ -116,7 +116,7 @@ public class SingleServerSimulation {
         //Initialize the event list. Since no customers are present, the departure service
         //service completion event is eliminated from consideration
 
-        time_next_event[1] = sim_time + expon(mean_interarrival);
+        time_next_event[1] = sim_time + expon(mean_interarrival); //sim_time =current time
         time_next_event[2] = 1.0e+30; //10 to power 30
     }
 
