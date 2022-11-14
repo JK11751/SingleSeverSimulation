@@ -22,9 +22,6 @@ public class SingleServerSimulation {
     //MAIN METHOD
     public static void main(String[] args){
 
-        //Specify number of events
-        num_events = 2;
-
         //Initialize variables
         mean_interarrival = 0;
         mean_service = 0;
@@ -32,7 +29,7 @@ public class SingleServerSimulation {
 
         //Reading values from the file
         try {
-            inFile = new Scanner(new FileReader("./mm1.in"));
+            inFile = new Scanner(new FileReader("./input.in"));
             mean_interarrival = inFile.nextDouble();
             mean_service = inFile.nextDouble();
             num_of_customer = inFile.nextInt();
@@ -45,7 +42,7 @@ public class SingleServerSimulation {
         
         //Writing values to the file
         try {
-            outFile = new PrintWriter("mm1.out","UTF-8");
+            outFile = new PrintWriter("output.out","UTF-8");
             outFile.println("Single-server queueing system\n\n");
             outFile.format("Mean interarrival time %11.3f minutes\n\n", mean_interarrival);
             outFile.format("Mean service time %16.3f minutes\n\n", mean_service);
@@ -94,14 +91,17 @@ public class SingleServerSimulation {
         inFile.close();
         outFile.close();
     }
-
+        /* Initialization method. */
+       /*the timing method is first invoked to determine the type of the next event to occur and
+   *  to advance the simulation clock to its time*/
     //Initialize the simulation
     public static void initialize() {
         //Initialize the simulation clock
-
+        
         sim_time = 0;
 
         //Initialize the status variables
+         num_events = 2;  //Specify number of events
         server_status = IDLE;
         num_in_q = 0;
         time_last_event = 0.0;
